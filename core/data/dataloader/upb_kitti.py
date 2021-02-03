@@ -7,7 +7,7 @@ from PIL import Image
 from .segbase import SegmentationDataset
 
 
-class VOCSegmentation(SegmentationDataset):
+class UPBSegmentation(SegmentationDataset):
     """Pascal VOC Semantic Segmentation Dataset.
 
     Parameters
@@ -37,7 +37,7 @@ class VOCSegmentation(SegmentationDataset):
     BASE_DIR = 'labels'
     NUM_CLASS = 1 # 1 for soft labels
 
-        def __init__(self, root='/HDD1_2TB/storage/kitti_self_supervised_labels', split='train', mode=None, transform=None,
+        def __init__(self, root='/mnt/storage/workspace/andreim/nemodrive/upb_self_supervised_labels', split='train', mode=None, transform=None,
                  **kwargs):
         super(KITTISegmentation, self).__init__(root, split, mode, transform, **kwargs)
         _voc_root = os.path.join(root, self.BASE_DIR)
@@ -89,7 +89,7 @@ class VOCSegmentation(SegmentationDataset):
             if self.transform is not None:
                 img = self.transform(img)
             return img, os.path.basename(self.images[index])
-        mask = Image.open(self.masks[index]).quantize(self.num_class + 1) # 1 for train or 2 for eval
+        mask = Image.open(self.masks[index]).quantize(self.num_class) # 1 for train or 2 for eval
         path_mask = Image.open(self.path_masks[index]).convert('RGB')
         # path_mask = np.load(self.path_masks[index], allow_pickle=True)
         # path_mask = Image.fromarray(path_mask)
@@ -129,7 +129,7 @@ class VOCSegmentation(SegmentationDataset):
         return ('path', 'rest')
 
 
-class KITTIImageSampler(Sampler):
+class UPBImageSampler(Sampler):
     def __init__(self, image_data, prob_weights):
         self.image_data = image_data
 
@@ -188,4 +188,4 @@ class KITTIImageSampler(Sampler):
 
 
 if __name__ == '__main__':
-    dataset = KITTISegmentation()
+    dataset = UPBSegmentation()

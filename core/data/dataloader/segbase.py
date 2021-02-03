@@ -1,87 +1,104 @@
-"""Base segmentation dataset"""
-import random
-import numpy as np
-
-from PIL import Image, ImageOps, ImageFilter
-
-__all__ = ['SegmentationDataset']
-
-
 class SegmentationDataset(object):
     """Segmentation Base Dataset"""
 
-    def __init__(self, root, split, mode, transform, base_size=520, crop_size=480):
+    def __init__(self, root, split, mode, transform, base_size_w=520, base_size_h=520, crop_size_w=480,
+                 crop_size_h=480):
         super(SegmentationDataset, self).__init__()
         self.root = root
         self.transform = transform
         self.split = split
         self.mode = mode if mode is not None else split
-        self.base_size = base_size
-        self.crop_size = crop_size
+        self.base_size_w = base_size_w
+        self.base_size_h = base_size_h
+        self.crop_size_w = crop_size_w
+        self.crop_size_h = crop_size_h
 
-    def _val_sync_transform(self, img, mask):
-        outsize = self.crop_size
-        short_size = outsize
-        w, h = img.size
-        if w > h:
-            oh = short_size
-            ow = int(1.0 * w * oh / h)
-        else:
-            ow = short_size
-            oh = int(1.0 * h * ow / w)
-        img = img.resize((ow, oh), Image.BILINEAR)
-        mask = mask.resize((ow, oh), Image.NEAREST)
+    def _val_sync_transform(self, img, mask, path_mask):
+        outsize_w = self.crop_size_w
+        outsize_h = self.crop_size_h
+        short_size_w, short_size_h = outsize_w, outsize_h
+        # if w > h:
+        #     oh = short_size
+        #     ow = int(1.0 * w * oh / h)
+        # else:
+        #     ow = short_size
+        #     oh = int(1.0 * h * ow / w)
+        img = img.resize((short_size_w, short_size_h), Image.BILINEAR)
+        mask = mask.resize((short_size_w, short_size_h), Image.NEAREST)
+        path_mask = path_mask.resize((short_size_w, short_size_h), Image.NEAREST)
         # center crop
         w, h = img.size
-        x1 = int(round((w - outsize) / 2.))
-        y1 = int(round((h - outsize) / 2.))
-        img = img.crop((x1, y1, x1 + outsize, y1 + outsize))
-        mask = mask.crop((x1, y1, x1 + outsize, y1 + outsize))
+        x1 = int(round((w - outsize_w) / 2.))
+        y1 = int(round((h - outsize_h) / 2.))
+        img = img.crop((x1, y1, x1 + outsize_w, y1 + outsize_h))
+        mask = mask.crop((x1, y1, x1 + outsize_w, y1 + outsize_h))
+        path_mask = path_mask.crop((x1, y1, x1 + outsize_w, y1 + outsize_h))
         # final transform
-        img, mask = self._img_transform(img), self._mask_transform(mask)
-        return img, mask
+        img, mask, path_mask = self._img_transform(img), self._mask_transform(mask), self._img_transform(path_mask)
+        return img, mask, path_mask
 
-    def _sync_transform(self, img, mask):
+    def _sync_transform(self, img, mask, path_mask):
         # random mirror
         if random.random() < 0.5:
             img = img.transpose(Image.FLIP_LEFT_RIGHT)
             mask = mask.transpose(Image.FLIP_LEFT_RIGHT)
-        crop_size = self.crop_size
+            path_mask = path_mask.transpose(Image.FLIP_LEFT_RIGHT)
+        crop_size_w = self.crop_size_w
+        crop_size_h = self.crop_size_h
         # random scale (short edge)
-        short_size = random.randint(int(self.base_size * 0.5), int(self.base_size * 2.0))
         w, h = img.size
-        if h > w:
-            ow = short_size
-            oh = int(1.0 * h * ow / w)
-        else:
-            oh = short_size
-            ow = int(1.0 * w * oh / h)
-        img = img.resize((ow, oh), Image.BILINEAR)
-        mask = mask.resize((ow, oh), Image.NEAREST)
+        random_scale = random.randint(int(self.base_size_w * 0.5), int(self.base_size_w * 2.0))
+        short_size_w = random_scale
+        short_size_h = int(random_scale * h / w)
+        # if h > w:
+        #     ow = short_size
+        #     oh = int(1.0 * h * ow / w)
+        # else:
+        #     oh = short_size
+        #     ow = int(1.0 * w * oh / h)
+        img = img.resize((short_size_w, short_size_h), Image.BILINEAR)
+        mask = mask.resize((short_size_w, short_size_h), Image.NEAREST)
+        path_mask = path_mask.resize((short_size_w, short_size_h), Image.NEAREST)
         # pad crop
-        if short_size < crop_size:
-            padh = crop_size - oh if oh < crop_size else 0
-            padw = crop_size - ow if ow < crop_size else 0
-            img = ImageOps.expand(img, border=(0, 0, padw, padh), fill=0)
-            mask = ImageOps.expand(mask, border=(0, 0, padw, padh), fill=0)
+        if short_size_w < crop_size_w:
+            padw = crop_size_w - short_size_w if short_size_w < crop_size_w else 0
+            img = ImageOps.expand(img, border=(0, 0, padw, 0), fill=0)
+            mask = ImageOps.expand(mask, border=(0, 0, padw, 0), fill=0)
+            path_mask = ImageOps.expand(path_mask, border=(0, 0, padw, 0), fill=0)
+        if short_size_h < crop_size_h:
+            padh = crop_size_h - short_size_h if short_size_h < crop_size_h else 0
+            img = ImageOps.expand(img, border=(0, 0, 0, padh), fill=0)
+            mask = ImageOps.expand(mask, border=(0, 0, 0, padh), fill=0)
+            path_mask = ImageOps.expand(path_mask, border=(0, 0, 0, padh), fill=0)
         # random crop crop_size
         w, h = img.size
-        x1 = random.randint(0, w - crop_size)
-        y1 = random.randint(0, h - crop_size)
-        img = img.crop((x1, y1, x1 + crop_size, y1 + crop_size))
-        mask = mask.crop((x1, y1, x1 + crop_size, y1 + crop_size))
+        x1 = random.randint(0, w - crop_size_w)
+        y1 = random.randint(0, h - crop_size_h)
+        img = img.crop((x1, y1, x1 + crop_size_w, y1 + crop_size_h))
+        mask = mask.crop((x1, y1, x1 + crop_size_w, y1 + crop_size_h))
+        path_mask = path_mask.crop((x1, y1, x1 + crop_size_w, y1 + crop_size_h))
+        # random rotation
+        if random.random() < 0.5:
+            random_rot = random.randint(-20, 20)
+            img = img.rotate(random_rot, Image.BILINEAR)
+            mask = mask.rotate(random_rot, Image.NEAREST)
+            path_mask = path_mask.rotate(random_rot, Image.NEAREST)
+
         # gaussian blur as in PSP
         if random.random() < 0.5:
             img = img.filter(ImageFilter.GaussianBlur(radius=random.random()))
         # final transform
-        img, mask = self._img_transform(img), self._mask_transform(mask)
-        return img, mask
+        img, mask, path_mask = self._img_transform(img), self._mask_transform(mask), self._img_transform(path_mask)
+        return img, mask, path_mask
 
     def _img_transform(self, img):
         return np.array(img)
 
     def _mask_transform(self, mask):
         return np.array(mask).astype('int32')
+
+    def _path_mask_transform(self, img):
+        return np.array(img).astype('float')
 
     @property
     def num_class(self):
