@@ -35,15 +35,15 @@ class UPBSegmentation(SegmentationDataset):
     >>>     num_workers=4)
     """
     BASE_DIR = 'labels'
-    NUM_CLASS = 1 # 1 for soft labels
+    NUM_CLASS = 2
 
         def __init__(self, root='/mnt/storage/workspace/andreim/nemodrive/upb_self_supervised_labels', split='train', mode=None, transform=None,
                  **kwargs):
         super(KITTISegmentation, self).__init__(root, split, mode, transform, **kwargs)
         _voc_root = os.path.join(root, self.BASE_DIR)
-        _mask_dir = os.path.join(_voc_root, 'SegmentationClass')#os.path.join(_voc_root, 'JPEGImages')
+        _mask_dir = os.path.join(_voc_root, 'HardLabels')#os.path.join(_voc_root, 'JPEGImages')
         _image_dir = os.path.join(_voc_root, 'JPEGImages')
-        _path_mask_dir = os.path.join(_voc_root, 'SoftRoadGaussianLabels')#os.path.join(_voc_root, 'JPEGImages')
+        _path_mask_dir = os.path.join(_voc_root, 'SoftLabels')#os.path.join(_voc_root, 'JPEGImages')
         # train/val/test splits are pre-cut
         _splits_dir = os.path.join(_voc_root, 'ImageSets/Segmentation')
         if split == 'train':
@@ -89,7 +89,7 @@ class UPBSegmentation(SegmentationDataset):
             if self.transform is not None:
                 img = self.transform(img)
             return img, os.path.basename(self.images[index])
-        mask = Image.open(self.masks[index]).quantize(self.num_class) # 1 for train or 2 for eval
+        mask = Image.open(self.masks[index]).quantize(self.num_class)
         path_mask = Image.open(self.path_masks[index]).convert('RGB')
         # path_mask = np.load(self.path_masks[index], allow_pickle=True)
         # path_mask = Image.fromarray(path_mask)
