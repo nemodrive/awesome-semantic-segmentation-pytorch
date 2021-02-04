@@ -30,6 +30,7 @@ def get_resnet_file(name, root='~/.torch/models'):
 
     file_path = os.path.join(root, file_name + '.pth')
     sha1_hash = _model_sha1[name]
+    print(file_path)
     if os.path.exists(file_path):
         if check_sha1(file_path, sha1_hash):
             return file_path

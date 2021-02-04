@@ -33,7 +33,7 @@ def parse_args():
                                  'danet', 'denseaspp', 'bisenet',
                                  'encnet', 'dunet', 'icnet',
                                  'enet', 'ocnet', 'ccnet', 'psanet',
-                                 'cgnet', 'espnet', 'lednet', 'dfanet'],
+                                 'cgnet', 'espnet', 'lednet', 'dfanet', 'upb'],
                         help='model name (default: fcn32s)')
     parser.add_argument('--backbone', type=str, default='resnet50',
                         choices=['vgg16', 'resnet18', 'resnet50',
@@ -42,7 +42,7 @@ def parse_args():
                         help='backbone name (default: vgg16)')
     parser.add_argument('--dataset', type=str, default='pascal_voc',
                         choices=['pascal_voc', 'pascal_aug', 'ade20k',
-                                 'citys', 'sbu'],
+                                 'citys', 'sbu', 'upb'],
                         help='dataset name (default: pascal_voc)')
     parser.add_argument('--base-size', type=int, default=520,
                         help='base image size')
@@ -59,7 +59,7 @@ def parse_args():
                         help='Auxiliary loss')
     parser.add_argument('--aux-weight', type=float, default=0.4,
                         help='auxiliary loss weight')
-    parser.add_argument('--batch-size', type=int, default=4, metavar='N',
+    parser.add_argument('--batch-size', type=int, default=8, metavar='N',
                         help='input batch size for training (default: 8)')
     parser.add_argument('--start_epoch', type=int, default=0,
                         metavar='N', help='start epochs (default:0)')
@@ -136,7 +136,7 @@ class Trainer(object):
             transforms.Normalize([.485, .456, .406], [.229, .224, .225]),
         ])
         # dataset and dataloader
-        data_kwargs = {'transform': input_transform, 'base_size': args.base_size, 'crop_size': args.crop_size}
+        data_kwargs = {'transform': input_transform}
         train_dataset = get_segmentation_dataset(args.dataset, split='train', mode='train', **data_kwargs)
         val_dataset = get_segmentation_dataset(args.dataset, split='val', mode='val', **data_kwargs)
         args.iters_per_epoch = len(train_dataset) // (args.num_gpus * args.batch_size)
@@ -211,7 +211,7 @@ class Trainer(object):
         logger.info('Start training, Total Epochs: {:d} = Total Iterations {:d}'.format(epochs, max_iters))
 
         self.model.train()
-        for iteration, (images, targets, _) in enumerate(self.train_loader):
+        for iteration, (images, targets, _, _) in enumerate(self.train_loader):
             iteration = iteration + 1
             self.lr_scheduler.step()
 
@@ -264,7 +264,7 @@ class Trainer(object):
             model = self.model
         torch.cuda.empty_cache()  # TODO check if it helps
         model.eval()
-        for i, (image, target, filename) in enumerate(self.val_loader):
+        for i, (image, target, _, filename) in enumerate(self.val_loader):
             image = image.to(self.device)
             target = target.to(self.device)
 
