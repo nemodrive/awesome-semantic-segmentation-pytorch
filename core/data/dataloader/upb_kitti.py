@@ -72,10 +72,9 @@ class UPBSegmentation(SegmentationDataset):
                 self.images.append(_image)
                 self.path_masks.append(_path_mask)
                 self.cmds.append(cmd)
-                if split != 'test':
-                    _mask = os.path.join(_mask_dir, file_name.replace('/', '\\')) # doar filename pt eval
-                    assert os.path.isfile(_mask)
-                    self.masks.append(_mask)
+                _mask = os.path.join(_mask_dir, file_name.replace('/', '\\')) # doar filename pt eval
+                assert os.path.isfile(_mask)
+                self.masks.append(_mask)
 
         if split != 'test':
             assert (len(self.images) == len(self.masks))
@@ -91,6 +90,7 @@ class UPBSegmentation(SegmentationDataset):
             if self.transform is not None:
                 img = self.transform(img)
             return img, os.path.basename(self.images[index])
+
         mask = Image.open(self.masks[index]).quantize(self.num_class)
         path_mask = Image.open(self.path_masks[index]).convert('RGB')
         # path_mask = np.load(self.path_masks[index], allow_pickle=True)

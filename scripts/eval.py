@@ -35,7 +35,7 @@ class Evaluator(object):
         ])
 
         # dataset and dataloader
-        val_dataset = get_segmentation_dataset(args.dataset, split='val', mode='testval', transform=input_transform)
+        val_dataset = get_segmentation_dataset(args.dataset, split='test', mode='testval', transform=input_transform)
         val_sampler = make_data_sampler(val_dataset, False, args.distributed)
         val_batch_sampler = make_batch_data_sampler(val_sampler, images_per_batch=1)
         self.val_loader = data.DataLoader(dataset=val_dataset,
@@ -64,7 +64,7 @@ class Evaluator(object):
         else:
             model = self.model
         logger.info("Start validation, Total sample: {:d}".format(len(self.val_loader)))
-        for i, (image, target, filename) in enumerate(self.val_loader):
+        for i, (image, target, _, filename) in enumerate(self.val_loader):
             image = image.to(self.device)
             target = target.to(self.device)
 
@@ -81,7 +81,7 @@ class Evaluator(object):
 
                 predict = pred.squeeze(0)
                 mask = get_color_pallete(predict, self.args.dataset)
-                mask.save(os.path.join(outdir, os.path.splitext(filename[0])[0] + '.png'))
+                mask.save(os.path.join(outdir, '\\'.join(filename[0].split('/')[-3:])))
         synchronize()
 
 
