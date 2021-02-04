@@ -151,7 +151,7 @@ def get_deeplabv3(dataset='pascal_voc', backbone='resnet50', pretrained=False, r
     if pretrained:
         from .model_store import get_model_file
         device = torch.device(kwargs['local_rank'])
-        model.load_state_dict(torch.load(get_model_file('deeplabv3_%s_%s' % (backbone, acronyms[dataset]), root=root),
+        model.load_state_dict(torch.load(get_model_file('deeplabv3_%s_%s_soft' % (backbone, acronyms[dataset]), root=root),
                               map_location=device))
     return model
 

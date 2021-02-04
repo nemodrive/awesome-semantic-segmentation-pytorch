@@ -91,7 +91,7 @@ class BottleneckV1b(nn.Module):
 
 class ResNetV1b(nn.Module):
 
-    def __init__(self, block, layers, num_classes=1000, dilated=True, deep_stem=False,
+    def __init__(self, block, layers, local_rank, num_classes=1000, dilated=True, deep_stem=False,
                  zero_init_residual=False, norm_layer=nn.BatchNorm2d):
         self.inplanes = 128 if deep_stem else 64
         super(ResNetV1b, self).__init__()
