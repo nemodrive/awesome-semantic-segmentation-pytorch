@@ -22,6 +22,7 @@ from core.utils.distributed import *
 from core.utils.logger import setup_logger
 from core.utils.lr_scheduler import WarmupPolyLR
 from core.utils.score import SegmentationMetric
+from core.data.dataloader.upb_kitti import UPBImageSampler
 
 
 def parse_args():
@@ -44,6 +45,9 @@ def parse_args():
                         choices=['pascal_voc', 'pascal_aug', 'ade20k',
                                  'citys', 'sbu', 'upb'],
                         help='dataset name (default: pascal_voc)')
+    parser.add_argument('--image-data', type=str, default=
+                        '/mnt/storage/workspace/andreim/nemodrive/upb_self_supervised_labels/labels/ImageSets/Segmentation/train',
+                        help='image paths file')
     parser.add_argument('--base-size', type=int, default=520,
                         help='base image size')
     parser.add_argument('--crop-size', type=int, default=480,
@@ -146,6 +150,22 @@ class Trainer(object):
         train_batch_sampler = make_batch_data_sampler(train_sampler, args.batch_size, args.max_iters)
         val_sampler = make_data_sampler(val_dataset, False, args.distributed)
         val_batch_sampler = make_batch_data_sampler(val_sampler, args.batch_size)
+
+        """
+        Added by me; Sampler stuff
+        """
+        prob_weights = [0.166, 0.166, 0.168, 0.166, 0.168, 0.166]
+        image_data = []
+        with open(os.path.join(args.image_data), "r") as lines:
+            for line in lines:
+                command = int(line.split(',')[1])
+                image_data.append(command)
+        train_sampler = UPBImageSampler(image_data, prob_weights)
+        train_batch_sampler = make_batch_data_sampler(train_sampler, args.batch_size, args.max_iters)
+        """
+        End here
+        """
+
 
         self.train_loader = data.DataLoader(dataset=train_dataset,
                                             batch_sampler=train_batch_sampler,
