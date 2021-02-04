@@ -1,8 +1,16 @@
+import random
+import numpy as np
+
+from PIL import Image, ImageOps, ImageFilter
+
+__all__ = ['SegmentationDataset']
+
+
 class SegmentationDataset(object):
     """Segmentation Base Dataset"""
 
-    def __init__(self, root, split, mode, transform, base_size_w=520, base_size_h=520, crop_size_w=480,
-                 crop_size_h=480):
+    def __init__(self, root, split, mode, transform, base_size_w=640, base_size_h=288, crop_size_w=590,
+                 crop_size_h=266):
         super(SegmentationDataset, self).__init__()
         self.root = root
         self.transform = transform

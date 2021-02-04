@@ -2,6 +2,8 @@
 import os
 import torch
 import numpy as np
+from torch.utils.data.sampler import Sampler
+from torchvision import transforms
 
 from PIL import Image
 from .segbase import SegmentationDataset
@@ -37,13 +39,13 @@ class UPBSegmentation(SegmentationDataset):
     BASE_DIR = 'labels'
     NUM_CLASS = 1 # 1 for soft labels
 
-        def __init__(self, root='/mnt/storage/workspace/andreim/nemodrive/upb_self_supervised_labels', split='train', mode=None, transform=None,
+    def __init__(self, root='/mnt/storage/workspace/andreim/nemodrive/upb_self_supervised_labels', split='train', mode=None, transform=None,
                  **kwargs):
-        super(KITTISegmentation, self).__init__(root, split, mode, transform, **kwargs)
+        super(UPBSegmentation, self).__init__(root, split, mode, transform, **kwargs)
         _voc_root = os.path.join(root, self.BASE_DIR)
-        _mask_dir = os.path.join(_voc_root, 'SegmentationClass')#os.path.join(_voc_root, 'JPEGImages')
+        _mask_dir = os.path.join(_voc_root, 'HardLabels')#os.path.join(_voc_root, 'JPEGImages')
         _image_dir = os.path.join(_voc_root, 'JPEGImages')
-        _path_mask_dir = os.path.join(_voc_root, 'SoftRoadGaussianLabels')#os.path.join(_voc_root, 'JPEGImages')
+        _path_mask_dir = os.path.join(_voc_root, 'SoftLabels')#os.path.join(_voc_root, 'JPEGImages')
         # train/val/test splits are pre-cut
         _splits_dir = os.path.join(_voc_root, 'ImageSets/Segmentation')
         if split == 'train':

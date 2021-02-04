@@ -4,6 +4,7 @@ import datetime
 import os
 import shutil
 import sys
+import cv2
 
 cur_path = os.path.abspath(os.path.dirname(__file__))
 root_path = os.path.split(cur_path)[0]
@@ -22,6 +23,7 @@ from core.utils.distributed import *
 from core.utils.logger import setup_logger
 from core.utils.lr_scheduler import WarmupPolyLR
 from core.utils.score import SegmentationMetric
+from core.data.dataloader.upb_kitti import UPBImageSampler
 
 
 def parse_args():
@@ -42,8 +44,11 @@ def parse_args():
                         help='backbone name (default: vgg16)')
     parser.add_argument('--dataset', type=str, default='pascal_voc',
                         choices=['pascal_voc', 'pascal_aug', 'ade20k',
-                                 'citys', 'sbu'],
+                                 'citys', 'sbu', 'upb'],
                         help='dataset name (default: pascal_voc)')
+    parser.add_argument('--image-data', type=str, default=
+                        '/mnt/storage/workspace/andreim/nemodrive/upb_self_supervised_labels/labels/ImageSets/Segmentation/train',
+                        help='image paths file')
     parser.add_argument('--base-size', type=int, default=520,
                         help='base image size')
     parser.add_argument('--crop-size', type=int, default=480,
@@ -136,7 +141,7 @@ class Trainer(object):
             transforms.Normalize([.485, .456, .406], [.229, .224, .225]),
         ])
         # dataset and dataloader
-        data_kwargs = {'transform': input_transform, 'base_size': args.base_size, 'crop_size': args.crop_size}
+        data_kwargs = {'transform': input_transform}
         train_dataset = get_segmentation_dataset(args.dataset, split='train', mode='train', **data_kwargs)
         val_dataset = get_segmentation_dataset(args.dataset, split='val', mode='val', **data_kwargs)
         args.iters_per_epoch = len(train_dataset) // (args.num_gpus * args.batch_size)
@@ -156,7 +161,7 @@ class Trainer(object):
             for line in lines:
                 command = int(line.split(',')[1])
                 image_data.append(command)
-        train_sampler = KITTIImageSampler(image_data, prob_weights)
+        train_sampler = UPBImageSampler(image_data, prob_weights)
         train_batch_sampler = make_batch_data_sampler(train_sampler, args.batch_size, args.max_iters)
         """
         End here
@@ -227,15 +232,19 @@ class Trainer(object):
         logger.info('Start training, Total Epochs: {:d} = Total Iterations {:d}'.format(epochs, max_iters))
 
         self.model.train()
-        for iteration, (images, targets, _) in enumerate(self.train_loader):
+        for iteration, (images, _, path_masks, _) in enumerate(self.train_loader):
             iteration = iteration + 1
             self.lr_scheduler.step()
 
             images = images.to(self.device)
-            targets = targets.to(self.device)
+            # targets = targets.to(self.device)
+            path_masks = path_masks.to(self.device)
+
+            cv2.imshow('img', images[0].cpu().numpy().transpose(1, 2, 0))
+            cv2.waitKey(0)
 
             outputs = self.model(images)
-            loss_dict = self.criterion(outputs, targets)
+            loss_dict = dict(loss=self.criterion(outputs[0], path_masks)) # this is for soft labels
 
             losses = sum(loss for loss in loss_dict.values())
 
@@ -280,12 +289,16 @@ class Trainer(object):
             model = self.model
         torch.cuda.empty_cache()  # TODO check if it helps
         model.eval()
-        for i, (image, target, filename) in enumerate(self.val_loader):
+        for i, (image, target, path_masks, filename) in enumerate(self.val_loader):
             image = image.to(self.device)
+            print(image.shape)
+            cv2.imshow('img', image[0].cpu().numpy().transpose(1, 2, 0))
+            cv2.waitKey(0)
             target = target.to(self.device)
 
             with torch.no_grad():
                 outputs = model(image)
+            print(outputs[0].shape)
             self.metric.update(outputs[0], target)
             pixAcc, mIoU = self.metric.get()
             logger.info("Sample: {:d}, Validation pixAcc: {:.3f}, mIoU: {:.3f}".format(i + 1, pixAcc, mIoU))
