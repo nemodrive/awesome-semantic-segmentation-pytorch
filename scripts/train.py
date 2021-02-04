@@ -235,8 +235,6 @@ class Trainer(object):
         for iteration, (images, _, path_masks, _) in enumerate(self.train_loader):
             iteration = iteration + 1
             self.lr_scheduler.step()
-            cv2.imshow('img', images[0].cpu().numpy().transpose(1,2,0))
-            cv2.waitKey(0)
 
             images = images.to(self.device)
             # targets = targets.to(self.device)
@@ -267,7 +265,7 @@ class Trainer(object):
             if iteration % save_per_iters == 0 and save_to_disk:
                 save_checkpoint(self.model, self.args, is_best=False)
 
-            if not self.args.skip_val and iteration % val_per_iters == 0:
+            if not self.args.skip_val and iteration % val_per_iters == 0 or True:
                 self.validation()
                 self.model.train()
 
@@ -299,12 +297,12 @@ class Trainer(object):
             output_p = output
             output_n = output
             output_p[output_p > 0.1] = 1
-            output_p[outpt_p != 1] = 0
+            output_p[output_p != 1] = 0
             output_n[output_n <= 0.1] = 1
-            output_n[outpt_n != 1] = 0
+            output_n[output_n != 1] = 0
             output_p = output_p.unsqueeze(1)
-            output_n = output_n.unsqeeze(1)
-            output = torch.cat([output_p, output_n], dim=1).
+            output_n = output_n.unsqueeze(1)
+            output = torch.cat([output_p, output_n], dim=1)
             self.metric.update(output, target)
             pixAcc, mIoU = self.metric.get()
             logger.info("Sample: {:d}, Validation pixAcc: {:.3f}, mIoU: {:.3f}".format(i + 1, pixAcc, mIoU))
