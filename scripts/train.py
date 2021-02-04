@@ -295,8 +295,17 @@ class Trainer(object):
             target = target.to(self.device)
 
             with torch.no_grad():
-                outputs = model(image)[0]
-            self.metric.update(outputs, target)
+                output = model(image)[0]
+            output_p = output
+            output_n = output
+            output_p[output_p > 0.1] = 1
+            output_p[outpt_p != 1] = 0
+            output_n[output_n <= 0.1] = 1
+            output_n[outpt_n != 1] = 0
+            output_p = output_p.unsqueeze(1)
+            output_n = output_n.unsqeeze(1)
+            output = torch.cat([output_p, output_n], dim=1).
+            self.metric.update(output, target)
             pixAcc, mIoU = self.metric.get()
             logger.info("Sample: {:d}, Validation pixAcc: {:.3f}, mIoU: {:.3f}".format(i + 1, pixAcc, mIoU))
 
