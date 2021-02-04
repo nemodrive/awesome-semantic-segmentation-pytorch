@@ -1,4 +1,3 @@
-"""Base segmentation dataset"""
 import random
 import numpy as np
 
@@ -10,8 +9,8 @@ __all__ = ['SegmentationDataset']
 class SegmentationDataset(object):
     """Segmentation Base Dataset"""
 
-    def __init__(self, root, split, mode, transform, base_size_w=640, base_size_h=288, crop_size_w=590,
-                 crop_size_h=266):
+    def __init__(self, root, split, mode, transform, base_size_w=640, base_size_h=288, crop_size_w=640,
+                 crop_size_h=288):
         super(SegmentationDataset, self).__init__()
         self.root = root
         self.transform = transform
@@ -81,8 +80,8 @@ class SegmentationDataset(object):
             path_mask = ImageOps.expand(path_mask, border=(0, 0, 0, padh), fill=0)
         # random crop crop_size
         w, h = img.size
-        x1 = random.randint(0, w - crop_size_w)
-        y1 = random.randint(0, h - crop_size_h)
+        x1 = random.randint(0, int(w - 0.9 * w))
+        y1 = random.randint(0, int(h - 0.9 * h))
         img = img.crop((x1, y1, x1 + crop_size_w, y1 + crop_size_h))
         mask = mask.crop((x1, y1, x1 + crop_size_w, y1 + crop_size_h))
         path_mask = path_mask.crop((x1, y1, x1 + crop_size_w, y1 + crop_size_h))
