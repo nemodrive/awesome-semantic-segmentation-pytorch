@@ -91,7 +91,7 @@ class UPBSegmentation(SegmentationDataset):
             if self.transform is not None:
                 img = self.transform(img)
             return img, os.path.basename(self.images[index])
-        mask = Image.open(self.masks[index]).quantize(self.num_class) # 1 for train or 2 for eval
+        mask = Image.open(self.masks[index]).quantize(self.num_class + 1) # 1 for train or 2 for eval
         path_mask = Image.open(self.path_masks[index]).convert('RGB')
         # path_mask = np.load(self.path_masks[index], allow_pickle=True)
         # path_mask = Image.fromarray(path_mask)

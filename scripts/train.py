@@ -235,13 +235,12 @@ class Trainer(object):
         for iteration, (images, _, path_masks, _) in enumerate(self.train_loader):
             iteration = iteration + 1
             self.lr_scheduler.step()
+            cv2.imshow('img', images[0].cpu().numpy().transpose(1,2,0))
+            cv2.waitKey(0)
 
             images = images.to(self.device)
             # targets = targets.to(self.device)
             path_masks = path_masks.to(self.device)
-
-            cv2.imshow('img', images[0].cpu().numpy().transpose(1, 2, 0))
-            cv2.waitKey(0)
 
             outputs = self.model(images)
             loss_dict = dict(loss=self.criterion(outputs[0], path_masks)) # this is for soft labels
@@ -291,15 +290,13 @@ class Trainer(object):
         model.eval()
         for i, (image, target, path_masks, filename) in enumerate(self.val_loader):
             image = image.to(self.device)
-            print(image.shape)
-            cv2.imshow('img', image[0].cpu().numpy().transpose(1, 2, 0))
-            cv2.waitKey(0)
+            print(target.shape)
+            
             target = target.to(self.device)
 
             with torch.no_grad():
-                outputs = model(image)
-            print(outputs[0].shape)
-            self.metric.update(outputs[0], target)
+                outputs = model(image)[0]
+            self.metric.update(outputs, target)
             pixAcc, mIoU = self.metric.get()
             logger.info("Sample: {:d}, Validation pixAcc: {:.3f}, mIoU: {:.3f}".format(i + 1, pixAcc, mIoU))
 
