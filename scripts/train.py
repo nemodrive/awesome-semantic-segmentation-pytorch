@@ -265,7 +265,7 @@ class Trainer(object):
             if iteration % save_per_iters == 0 and save_to_disk:
                 save_checkpoint(self.model, self.args, is_best=False)
 
-            if not self.args.skip_val and iteration % val_per_iters == 0 or True:
+            if not self.args.skip_val and iteration % val_per_iters == 0:
                 self.validation()
                 self.model.train()
 
@@ -294,17 +294,11 @@ class Trainer(object):
 
             with torch.no_grad():
                 output = model(image)[0]
-            output_p = output
-            output_n = output
-            output_p[output_p > 0.1] = 1
-            output_p[output_p != 1] = 0
-            output_n[output_n <= 0.1] = 1
-            output_n[output_n != 1] = 0
-            output_p = output_p.unsqueeze(1)
-            output_n = output_n.unsqueeze(1)
-            output = torch.cat([output_p, output_n], dim=1)
-            self.metric.update(output, target)
-            pixAcc, mIoU = self.metric.get()
+            output[output > 0.1] = 1
+            output[output != 1] = 0
+            output = output.unsqueeze(1)
+            pixAcc = torch.sum(torch.eq(output, target)).item() / target.nelement()
+            mIoU = torch.logical_and(output, target).sum() / torch.logical_or(output, target).sum()
             logger.info("Sample: {:d}, Validation pixAcc: {:.3f}, mIoU: {:.3f}".format(i + 1, pixAcc, mIoU))
 
         new_pred = (pixAcc + mIoU) / 2
