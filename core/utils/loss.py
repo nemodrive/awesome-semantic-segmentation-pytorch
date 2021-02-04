@@ -183,6 +183,8 @@ class MixSoftmaxCrossEntropyOHEMLoss(OhemCrossEntropy2d):
 
 
 def get_segmentation_loss(model, use_ohem=False, **kwargs):
+    return nn.BCEWithLogitsLoss() # for soft labels
+
     if use_ohem:
         return MixSoftmaxCrossEntropyOHEMLoss(**kwargs)
 

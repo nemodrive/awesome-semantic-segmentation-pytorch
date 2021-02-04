@@ -147,6 +147,22 @@ class Trainer(object):
         val_sampler = make_data_sampler(val_dataset, False, args.distributed)
         val_batch_sampler = make_batch_data_sampler(val_sampler, args.batch_size)
 
+        """
+        Added by me; Sampler stuff
+        """
+        prob_weights = [0.166, 0.166, 0.168, 0.166, 0.168, 0.166]
+        image_data = []
+        with open(os.path.join(args.image_data), "r") as lines:
+            for line in lines:
+                command = int(line.split(',')[1])
+                image_data.append(command)
+        train_sampler = KITTIImageSampler(image_data, prob_weights)
+        train_batch_sampler = make_batch_data_sampler(train_sampler, args.batch_size, args.max_iters)
+        """
+        End here
+        """
+
+
         self.train_loader = data.DataLoader(dataset=train_dataset,
                                             batch_sampler=train_batch_sampler,
                                             num_workers=args.workers,
@@ -287,14 +303,14 @@ def save_checkpoint(model, args, is_best=False):
     directory = os.path.expanduser(args.save_dir)
     if not os.path.exists(directory):
         os.makedirs(directory)
-    filename = '{}_{}_{}.pth'.format(args.model, args.backbone, args.dataset)
+    filename = '{}_{}_{}_soft.pth'.format(args.model, args.backbone, args.dataset)
     filename = os.path.join(directory, filename)
 
     if args.distributed:
         model = model.module
     torch.save(model.state_dict(), filename)
     if is_best:
-        best_filename = '{}_{}_{}_best_model.pth'.format(args.model, args.backbone, args.dataset)
+        best_filename = '{}_{}_{}_soft_best_model.pth'.format(args.model, args.backbone, args.dataset)
         best_filename = os.path.join(directory, best_filename)
         shutil.copyfile(filename, best_filename)
 
