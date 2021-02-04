@@ -21164,3 +21164,14 @@
 2021-02-04 03:36:54,593 semantic_segmentation INFO: Iters: 62460/594600 || Lr: 0.000090 || Loss: 0.0326 || Cost Time: 22:36:51 || Estimated Time: 8 days, 0:39:58
 2021-02-04 03:37:06,751 semantic_segmentation INFO: Iters: 62470/594600 || Lr: 0.000090 || Loss: 0.0726 || Cost Time: 22:37:03 || Estimated Time: 8 days, 0:39:38
 2021-02-04 03:37:18,914 semantic_segmentation INFO: Iters: 62480/594600 || Lr: 0.000090 || Loss: 0.0349 || Cost Time: 22:37:15 || Estimated Time: 8 days, 0:39:17
+2021-02-04 03:37:31,096 semantic_segmentation INFO: Iters: 62490/594600 || Lr: 0.000090 || Loss: 0.0326 || Cost Time: 22:37:27 || Estimated Time: 8 days, 0:38:57
+2021-02-04 03:37:43,268 semantic_segmentation INFO: Iters: 62500/594600 || Lr: 0.000090 || Loss: 0.0304 || Cost Time: 22:37:40 || Estimated Time: 8 days, 0:38:37
+2021-02-04 03:37:55,430 semantic_segmentation INFO: Iters: 62510/594600 || Lr: 0.000090 || Loss: 0.0539 || Cost Time: 22:37:52 || Estimated Time: 8 days, 0:38:16
+2021-02-04 03:38:07,599 semantic_segmentation INFO: Iters: 62520/594600 || Lr: 0.000090 || Loss: 0.0382 || Cost Time: 22:38:04 || Estimated Time: 8 days, 0:37:56
+2021-02-04 03:38:19,765 semantic_segmentation INFO: Iters: 62530/594600 || Lr: 0.000090 || Loss: 0.0364 || Cost Time: 22:38:16 || Estimated Time: 8 days, 0:37:35
+2021-02-04 03:38:31,932 semantic_segmentation INFO: Iters: 62540/594600 || Lr: 0.000090 || Loss: 0.0393 || Cost Time: 22:38:28 || Estimated Time: 8 days, 0:37:15
+2021-02-04 03:38:44,107 semantic_segmentation INFO: Iters: 62550/594600 || Lr: 0.000090 || Loss: 0.0540 || Cost Time: 22:38:40 || Estimated Time: 8 days, 0:36:55
+2021-02-04 03:38:56,283 semantic_segmentation INFO: Iters: 62560/594600 || Lr: 0.000090 || Loss: 0.0234 || Cost Time: 22:38:53 || Estimated Time: 8 days, 0:36:34
+2021-02-04 03:39:08,465 semantic_segmentation INFO: Iters: 62570/594600 || Lr: 0.000090 || Loss: 0.0323 || Cost Time: 22:39:05 || Estimated Time: 8 days, 0:36:14
+2021-02-04 03:39:20,619 semantic_segmentation INFO: Iters: 62580/594600 || Lr: 0.000090 || Loss: 0.0337 || Cost Time: 22:39:17 || Estimated Time: 8 days, 0:35:53
+2021-02-04 03:39:32,788 semantic_segmentation INFO: Iters: 62590/594600 || Lr: 0.000090 || Loss: 0.0633 || Cost Time: 22:39:29 || Estimated Time: 8 days, 0:35:33
