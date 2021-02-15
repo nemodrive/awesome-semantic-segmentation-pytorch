@@ -81,7 +81,8 @@ class Evaluator(object):
 
                 predict = pred.squeeze(0)
                 mask = get_color_pallete(predict, self.args.dataset)
-                mask.save(os.path.join(outdir, os.path.splitext(filename[0])[0] + '.png'))
+                print(outdir, os.path.splitext(filename[0])[0] + '.png'))
+                #mask.save(os.path.join(outdir, os.path.splitext(filename[0])[0] + '.png'))
         synchronize()
 
 
