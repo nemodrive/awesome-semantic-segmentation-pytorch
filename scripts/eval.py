@@ -81,6 +81,7 @@ class Evaluator(object):
 
                 predict = pred.squeeze(0)
                 mask = get_color_pallete(predict, self.args.dataset)
+                print(os.path.join(outdir, '\\'.join(filename[0].split('/')[-3:])))
                 mask.save(os.path.join(outdir, '\\'.join(filename[0].split('/')[-3:])))
         synchronize()
 
