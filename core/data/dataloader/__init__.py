@@ -8,6 +8,7 @@ from .pascal_voc import VOCSegmentation
 from .pascal_aug import VOCAugSegmentation
 from .sbu_shadow import SBUSegmentation
 from .upb_kitti import UPBSegmentation
+from .kitti import KittiSegmentation
 
 datasets = {
     'ade20k': ADE20KSegmentation,
@@ -17,6 +18,7 @@ datasets = {
     'citys': CitySegmentation,
     'sbu': SBUSegmentation,
     'upb': UPBSegmentation,
+    'kitti': KittiSegmentation,
 }
 
 

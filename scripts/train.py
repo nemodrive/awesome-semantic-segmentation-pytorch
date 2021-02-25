@@ -43,10 +43,10 @@ def parse_args():
                         help='backbone name (default: vgg16)')
     parser.add_argument('--dataset', type=str, default='pascal_voc',
                         choices=['pascal_voc', 'pascal_aug', 'ade20k',
-                                 'citys', 'sbu', 'upb'],
+                                 'citys', 'sbu', 'upb', 'kitti'],
                         help='dataset name (default: pascal_voc)')
     parser.add_argument('--image-data', type=str, default=
-                        '/mnt/storage/workspace/andreim/nemodrive/upb_self_supervised_labels/labels/ImageSets/Segmentation/train',
+                        '/mnt/storage/workspace/andreim/nemodrive/kitti_self_supervised_labels/labels/ImageSets/Segmentation/train.txt',
                         help='image paths file')
     parser.add_argument('--base-size', type=int, default=520,
                         help='base image size')
@@ -63,7 +63,7 @@ def parse_args():
                         help='Auxiliary loss')
     parser.add_argument('--aux-weight', type=float, default=0.4,
                         help='auxiliary loss weight')
-    parser.add_argument('--batch-size', type=int, default=4, metavar='N',
+    parser.add_argument('--batch-size', type=int, default=8, metavar='N',
                         help='input batch size for training (default: 8)')
     parser.add_argument('--start_epoch', type=int, default=0,
                         metavar='N', help='start epochs (default:0)')
