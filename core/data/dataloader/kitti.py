@@ -9,7 +9,7 @@ from PIL import Image
 from .segbase import SegmentationDataset
 
 
-class UPBSegmentation(SegmentationDataset):
+class KittiSegmentation(SegmentationDataset):
     """Pascal VOC Semantic Segmentation Dataset.
 
     Parameters
@@ -39,9 +39,9 @@ class UPBSegmentation(SegmentationDataset):
     BASE_DIR = 'labels'
     NUM_CLASS = 1 # 1 for soft labels
 
-    def __init__(self, root='/mnt/storage/workspace/andreim/nemodrive/upb_self_supervised_labels', split='train', mode=None, transform=None,
+    def __init__(self, root='/mnt/storage/workspace/andreim/nemodrive/kitti_self_supervised_labels', split='train', mode=None, transform=None,
                  **kwargs):
-        super(UPBSegmentation, self).__init__(root, split, mode, transform, **kwargs)
+        super(KittiSegmentation, self).__init__(root, split, mode, transform, **kwargs)
         _voc_root = os.path.join(root, self.BASE_DIR)
         _mask_dir = os.path.join(_voc_root, 'HardLabels')#os.path.join(_voc_root, 'JPEGImages')
         _image_dir = os.path.join(_voc_root, 'JPEGImages')
@@ -49,11 +49,11 @@ class UPBSegmentation(SegmentationDataset):
         # train/val/test splits are pre-cut
         _splits_dir = os.path.join(_voc_root, 'ImageSets/Segmentation')
         if split == 'train':
-            _split_f = os.path.join(_splits_dir, 'train')
+            _split_f = os.path.join(_splits_dir, 'train.txt')
         elif split == 'val':
-            _split_f = os.path.join(_splits_dir, 'val') #'val_upb.txt'; with info has the files that are synched with the steering info files
+            _split_f = os.path.join(_splits_dir, 'val.txt') #'val_upb.txt'; with info has the files that are synched with the steering info files
         elif split == 'test':
-            _split_f = os.path.join(_splits_dir, 'test')
+            _split_f = os.path.join(_splits_dir, 'test.txt')
         else:
             raise RuntimeError('Unknown dataset split.')
 
@@ -189,4 +189,4 @@ class UPBImageSampler(Sampler):
 
 
 if __name__ == '__main__':
-    dataset = UPBSegmentation()
+    dataset = KittiSegmentation()
