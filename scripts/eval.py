@@ -3,6 +3,9 @@ from __future__ import print_function
 import os
 import sys
 
+import seaborn as sns
+import matplotlib.pyplot as plt
+
 cur_path = os.path.abspath(os.path.dirname(__file__))
 root_path = os.path.split(cur_path)[0]
 sys.path.append(root_path)
@@ -64,16 +67,40 @@ class Evaluator(object):
         else:
             model = self.model
         logger.info("Start validation, Total sample: {:d}".format(len(self.val_loader)))
-        for i, (image, target, filename) in enumerate(self.val_loader):
+        for i, (image, target, path_masks, filename) in enumerate(self.val_loader):
             image = image.to(self.device)
             target = target.to(self.device)
 
             with torch.no_grad():
                 outputs = model(image)
-            self.metric.update(outputs[0], target)
-            pixAcc, mIoU = self.metric.get()
+            
+            logits = outputs[0][0][0].cpu().data.numpy()
+
+            print(target.shape, logits.shape, image.shape, filename)
+        
+            logits[logits > 0.15] = 1
+            logits[logits != 1] = 0
+
+            output = torch.tensor(logits).to(self.device)
+
+            pixAcc = torch.sum(torch.eq(output, 1 - target)).item() / target.nelement()
+            mIoU = torch.logical_and(output, 1 - target).sum() / torch.logical_or(output, 1 - target).sum()
+
             logger.info("Sample: {:d}, validation pixAcc: {:.3f}, mIoU: {:.3f}".format(
-                i + 1, pixAcc * 100, mIoU * 100))
+                    i + 1, pixAcc * 100, mIoU * 100))
+
+
+            plt.figure(figsize=(6.4, 2.88), dpi=100)
+            plt.gca().set_axis_off()
+            plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
+                                hspace=0, wspace=0)
+            plt.margins(0, 0)
+            plt.gca().xaxis.set_major_locator(plt.NullLocator())
+            plt.gca().yaxis.set_major_locator(plt.NullLocator())
+            sns.heatmap(logits, cbar=True, xticklabels=True, yticklabels=True)
+            plt.show()
+            plt.waitforbuttonpress()
+            plt.close()
 
             if self.args.save_pred:
                 pred = torch.argmax(outputs[0], 1)
@@ -81,7 +108,7 @@ class Evaluator(object):
 
                 predict = pred.squeeze(0)
                 mask = get_color_pallete(predict, self.args.dataset)
-                print(outdir, os.path.splitext(filename[0])[0] + '.png'))
+                print(outdir, os.path.splitext(filename[0])[0] + '.png')
                 #mask.save(os.path.join(outdir, os.path.splitext(filename[0])[0] + '.png'))
         synchronize()
 

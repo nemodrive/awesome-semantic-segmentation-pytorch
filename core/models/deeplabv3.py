@@ -8,7 +8,7 @@ from .fcn import _FCNHead
 
 __all__ = ['DeepLabV3', 'get_deeplabv3', 'get_deeplabv3_resnet50_voc', 'get_deeplabv3_resnet101_voc',
            'get_deeplabv3_resnet152_voc', 'get_deeplabv3_resnet50_ade', 'get_deeplabv3_resnet101_ade',
-           'get_deeplabv3_resnet152_ade', 'get_deeplabv3_resnet50_upb']
+           'get_deeplabv3_resnet152_ade', 'get_deeplabv3_resnet50_upb', 'get_deeplabv3_resnet50_kitti']
 
 
 class DeepLabV3(SegBaseModel):
@@ -144,7 +144,8 @@ def get_deeplabv3(dataset='pascal_voc', backbone='resnet50', pretrained=False, r
         'ade20k': 'ade',
         'coco': 'coco',
         'citys': 'citys',
-	'upb': 'upb',
+	    'upb': 'upb',
+        'kitti': 'kitti',
     }
     from ..data.dataloader import datasets
     model = DeepLabV3(datasets[dataset].NUM_CLASS, backbone=backbone, pretrained_base=pretrained_base, **kwargs)
@@ -180,6 +181,9 @@ def get_deeplabv3_resnet152_ade(**kwargs):
     return get_deeplabv3('ade20k', 'resnet152', **kwargs)
 
 def get_deeplabv3_resnet50_upb(**kwargs):
+    return get_deeplabv3('upb', 'resnet50', **kwargs)
+
+def get_deeplabv3_resnet50_kitti(**kwargs):
     return get_deeplabv3('upb', 'resnet50', **kwargs)
 
 

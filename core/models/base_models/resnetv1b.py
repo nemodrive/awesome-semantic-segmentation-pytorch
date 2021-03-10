@@ -91,7 +91,7 @@ class BottleneckV1b(nn.Module):
 
 class ResNetV1b(nn.Module):
 
-    def __init__(self, block, layers, local_rank, num_classes=1000, dilated=True, deep_stem=False,
+    def __init__(self, block, layers, num_classes=1000, dilated=True, deep_stem=False,
                  zero_init_residual=False, norm_layer=nn.BatchNorm2d):
         self.inplanes = 128 if deep_stem else 64
         super(ResNetV1b, self).__init__()
@@ -233,7 +233,10 @@ def resnet152_v1b(pretrained=False, **kwargs):
 
 
 def resnet50_v1s(pretrained=False, root='~/.torch/models', **kwargs):
-    model = ResNetV1b(BottleneckV1b, [3, 4, 6, 3], deep_stem=True, **kwargs)
+    kwargs_new = kwargs.copy()
+    if 'local_rank' in kwargs_new:
+        kwargs_new.pop('local_rank')
+    model = ResNetV1b(BottleneckV1b, [3, 4, 6, 3], deep_stem=True, **kwargs_new)
     if pretrained:
         from ..model_store import get_resnet_file
         model.load_state_dict(torch.load(get_resnet_file('resnet50', root=root)), strict=False)

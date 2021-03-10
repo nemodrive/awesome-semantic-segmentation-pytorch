@@ -5,6 +5,8 @@ import os
 import shutil
 import sys
 import cv2
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 cur_path = os.path.abspath(os.path.dirname(__file__))
 root_path = os.path.split(cur_path)[0]
@@ -47,7 +49,7 @@ def parse_args():
                                  'citys', 'sbu', 'upb', 'kitti'],
                         help='dataset name (default: pascal_voc)')
     parser.add_argument('--image-data', type=str, default=
-                        '/mnt/storage/workspace/andreim/nemodrive/upb_self_supervised_labels/labels/ImageSets/Segmentation/train',
+                        '/mnt/storage/workspace/andreim/nemodrive/kitti_self_supervised_labels/labels/ImageSets/Segmentation/train.txt',
                         help='image paths file')
     parser.add_argument('--base-size', type=int, default=520,
                         help='base image size')
@@ -294,9 +296,23 @@ class Trainer(object):
 
             with torch.no_grad():
                 output = model(image)[0]
-            output[output > 0.1] = 1
+            output = output.squeeze(1)
+            output = nn.Sigmoid()(output)
+            output[output > 0.28] = 1
             output[output != 1] = 0
-            output = output.unsqueeze(1)
+
+            # plt.figure(figsize=(6.4, 2.88), dpi=100)
+            # plt.gca().set_axis_off()
+            # plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
+            #                     hspace=0, wspace=0)
+            # plt.margins(0, 0)
+            # plt.gca().xaxis.set_major_locator(plt.NullLocator())
+            # plt.gca().yaxis.set_major_locator(plt.NullLocator())
+            # sns.heatmap(output[0].cpu(), cbar=True, xticklabels=True, yticklabels=True)
+            # plt.show()
+            # plt.waitforbuttonpress()
+            # plt.close()
+
             pixAcc = torch.sum(torch.eq(output, target)).item() / target.nelement()
             mIoU = torch.logical_and(output, target).sum() / torch.logical_or(output, target).sum()
             logger.info("Sample: {:d}, Validation pixAcc: {:.3f}, mIoU: {:.3f}".format(i + 1, pixAcc, mIoU))
@@ -314,14 +330,14 @@ def save_checkpoint(model, args, is_best=False):
     directory = os.path.expanduser(args.save_dir)
     if not os.path.exists(directory):
         os.makedirs(directory)
-    filename = '{}_{}_{}_soft.pth'.format(args.model, args.backbone, args.dataset)
+    filename = '{}_{}_{}_soft_correct.pth'.format(args.model, args.backbone, args.dataset)
     filename = os.path.join(directory, filename)
 
     if args.distributed:
         model = model.module
     torch.save(model.state_dict(), filename)
     if is_best:
-        best_filename = '{}_{}_{}_soft_best_model.pth'.format(args.model, args.backbone, args.dataset)
+        best_filename = '{}_{}_{}_soft_correct_best_model.pth'.format(args.model, args.backbone, args.dataset)
         best_filename = os.path.join(directory, best_filename)
         shutil.copyfile(filename, best_filename)
 

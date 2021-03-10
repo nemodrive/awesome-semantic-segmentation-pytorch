@@ -6,6 +6,7 @@ from torch.utils.data.sampler import Sampler
 from torchvision import transforms
 
 from PIL import Image
+from skimage.transform import resize
 from .segbase import SegmentationDataset
 
 
@@ -82,6 +83,7 @@ class KittiSegmentation(SegmentationDataset):
 
     def __getitem__(self, index):
         img = Image.open(self.images[index]).convert('RGB')
+        img = img.resize((832, 256))
         # print(self.cmds[index])
         # img.show()
         # time.sleep(8)
