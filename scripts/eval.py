@@ -7,6 +7,9 @@ cur_path = os.path.abspath(os.path.dirname(__file__))
 root_path = os.path.split(cur_path)[0]
 sys.path.append(root_path)
 
+import numpy as np
+import cv2
+
 import torch
 import torch.nn as nn
 import torch.utils.data as data
@@ -64,6 +67,9 @@ class Evaluator(object):
         else:
             model = self.model
         logger.info("Start validation, Total sample: {:d}".format(len(self.val_loader)))
+        sum_acc = 0.
+        sum_miou = 0.
+        num = 0
         for i, (image, target, _, filename) in enumerate(self.val_loader):
             image = image.to(self.device)
             target = target.to(self.device)
@@ -74,16 +80,28 @@ class Evaluator(object):
             pixAcc, mIoU = self.metric.get()
             logger.info("Sample: {:d}, validation pixAcc: {:.3f}, mIoU: {:.3f}".format(
                 i + 1, pixAcc * 100, mIoU * 100))
-
+            sum_acc += pixAcc
+            sum_miou += mIoU
+            num += 1
             if self.args.save_pred:
                 pred = torch.argmax(outputs[0], 1)
                 pred = pred.cpu().data.numpy()
 
                 predict = pred.squeeze(0)
                 mask = get_color_pallete(predict, self.args.dataset)
+                mask_overlay = np.array(mask)
+                mask_overlay = np.array([mask_overlay] * 3)
+                mask_overlay[mask_overlay == 0] = 255
+                mask_overlay[mask_overlay != 255] = 0
+                mask_overlay[0, :, :] = 0
+                mask_overlay[2, :, :] = 0
+                print(mask_overlay.transpose((1, 2, 0)).shape, image.squeeze(0).permute((1, 2, 0)).cpu().numpy().shape)
+                res_img = cv2.addWeighted(mask_overlay.transpose((1, 2, 0)).astype(np.float32), 1.,
+                     image.squeeze(0).permute((1, 2, 0)).cpu().numpy().astype(np.float32), 1, 0)
                 print(os.path.join(outdir, '\\'.join(filename[0].split('/')[-3:])))
                 mask.save(os.path.join(outdir, '\\'.join(filename[0].split('/')[-3:])))
         synchronize()
+        print(sum_acc / num * 100, sum_miou / num * 100)
 
 
 if __name__ == '__main__':

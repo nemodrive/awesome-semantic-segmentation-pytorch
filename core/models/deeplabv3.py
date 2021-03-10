@@ -145,6 +145,7 @@ def get_deeplabv3(dataset='pascal_voc', backbone='resnet50', pretrained=False, r
         'coco': 'coco',
         'citys': 'citys',
 	'upb': 'upb',
+        'kitti': 'kitti',
     }
     from ..data.dataloader import datasets
     model = DeepLabV3(datasets[dataset].NUM_CLASS, backbone=backbone, pretrained_base=pretrained_base, **kwargs)

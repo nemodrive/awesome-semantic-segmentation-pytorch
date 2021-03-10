@@ -233,7 +233,10 @@ def resnet152_v1b(pretrained=False, **kwargs):
 
 
 def resnet50_v1s(pretrained=False, root='~/.torch/models', **kwargs):
-    model = ResNetV1b(BottleneckV1b, [3, 4, 6, 3], deep_stem=True, **kwargs)
+    kwargs_new = kwargs.copy()
+    if 'local_rank' in kwargs_new:
+        kwargs_new.pop('local_rank')
+    model = ResNetV1b(BottleneckV1b, [3, 4, 6, 3], deep_stem=True, **kwargs_new)
     if pretrained:
         from ..model_store import get_resnet_file
         model.load_state_dict(torch.load(get_resnet_file('resnet50', root=root)), strict=False)
