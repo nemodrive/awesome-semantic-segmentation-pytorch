@@ -6,7 +6,8 @@ import torch.nn.functional as F
 from .base_models.vgg import vgg16
 
 __all__ = ['get_fcn32s', 'get_fcn16s', 'get_fcn8s',
-           'get_fcn32s_vgg16_voc', 'get_fcn16s_vgg16_voc', 'get_fcn8s_vgg16_voc']
+           'get_fcn32s_vgg16_voc', 'get_fcn16s_vgg16_voc', 'get_fcn8s_vgg16_voc',
+           'get_fcn32s_vgg16_kitti']
 
 
 class FCN32s(nn.Module):
@@ -156,13 +157,15 @@ def get_fcn32s(dataset='pascal_voc', backbone='vgg16', pretrained=False, root='~
         'ade20k': 'ade',
         'coco': 'coco',
         'citys': 'citys',
+        'kitti': 'kitti',
+        'upb': 'upb',
     }
     from ..data.dataloader import datasets
     model = FCN32s(datasets[dataset].NUM_CLASS, backbone=backbone, pretrained_base=pretrained_base, **kwargs)
     if pretrained:
         from .model_store import get_model_file
         device = torch.device(kwargs['local_rank'])
-        model.load_state_dict(torch.load(get_model_file('fcn32s_%s_%s' % (backbone, acronyms[dataset]), root=root),
+        model.load_state_dict(torch.load(get_model_file('fcn32s_%s_%s_soft_correct' % (backbone, acronyms[dataset]), root=root),
                               map_location=device))
     return model
 
@@ -215,6 +218,9 @@ def get_fcn16s_vgg16_voc(**kwargs):
 
 def get_fcn8s_vgg16_voc(**kwargs):
     return get_fcn8s('pascal_voc', 'vgg16', **kwargs)
+
+def get_fcn32s_vgg16_kitti(**kwargs):
+    return get_fcn32s('kitti', 'vgg16', **kwargs)
 
 
 if __name__ == '__main__':
