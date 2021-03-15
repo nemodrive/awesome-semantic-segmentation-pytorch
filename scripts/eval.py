@@ -62,67 +62,70 @@ class Evaluator(object):
         self.metric = SegmentationMetric(val_dataset.num_class)
 
     def eval(self):
-        self.metric.reset()
-        self.model.eval()
-        if self.args.distributed:
-            model = self.model.module
-        else:
-            model = self.model
-        logger.info("Start validation, Total sample: {:d}".format(len(self.val_loader)))
+        for threshold in np.arange(0.3, 1, 0.025):          
+            self.metric.reset()
+            self.model.eval()
+            if self.args.distributed:
+                model = self.model.module
+            else:
+                model = self.model
+            # logger.info("Start validation, Total sample: {:d}".format(len(self.val_loader)))
 
-        num = 0
-        sum_acc = 0.
-        sum_miou = 0.
-        for i, (image, target, path_masks, filename) in enumerate(self.val_loader):
-            image = image.to(self.device)
-            target = target.to(self.device)
+            num = 0
+            sum_acc = 0.
+            sum_miou = 0.
+            for i, (image, target, path_masks, filename) in enumerate(self.val_loader):
+                image = image.to(self.device)
+                target = target.to(self.device)
 
-            with torch.no_grad():
-                outputs = model(image)
+                with torch.no_grad():
+                    outputs = model(image)
+                
+                logits = nn.Sigmoid()(outputs[0][0][0])
+                logits = logits.cpu().data.numpy()
+
+                # print(target.shape, logits.shape, image.shape, filename)
             
-            logits = outputs[0][0][0].cpu().data.numpy()
+                logits[logits > threshold] = 1
+                logits[logits != 1] = 0
 
-            print(target.shape, logits.shape, image.shape, filename)
-        
-            logits[logits > 0.15] = 1
-            logits[logits != 1] = 0
+                output = torch.tensor(logits).to(self.device)
 
-            output = torch.tensor(logits).to(self.device)
+                pixAcc = torch.sum(torch.eq(output, 1 - target)).item() / target.nelement()
+                mIoU = torch.logical_and(output, 1 - target).sum() / torch.logical_or(output, 1 - target).sum()
 
-            pixAcc = torch.sum(torch.eq(output, 1 - target)).item() / target.nelement()
-            mIoU = torch.logical_and(output, 1 - target).sum() / torch.logical_or(output, 1 - target).sum()
+                num += 1
+                sum_acc += pixAcc
+                sum_miou += mIoU
 
-            num += 1
-            sum_acc += pixAcc
-            sum_miou += mIoU
-
-            logger.info("Sample: {:d}, validation pixAcc: {:.3f}, mIoU: {:.3f}".format(
-                    i + 1, pixAcc * 100, mIoU * 100))
+                #logger.info("Sample: {:d}, validation pixAcc: {:.3f}, mIoU: {:.3f}".format(
+                #        i + 1, pixAcc * 100, mIoU * 100))
 
 
-            #plt.figure(figsize=(6.4, 2.88), dpi=100)
-            #plt.gca().set_axis_off()
-            #plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
-            #                    hspace=0, wspace=0)
-            #plt.margins(0, 0)
-            #plt.gca().xaxis.set_major_locator(plt.NullLocator())
-            #plt.gca().yaxis.set_major_locator(plt.NullLocator())
-            #sns.heatmap(logits, cbar=True, xticklabels=True, yticklabels=True)
-            #plt.show()
-            #plt.waitforbuttonpress()
-            #plt.close()
+                #if mIoU < 0.5:
+                    #plt.figure(figsize=(6.4, 2.88), dpi=100)
+                    #plt.gca().set_axis_off()
+                    #plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
+                    #                hspace=0, wspace=0)
+                    #plt.margins(0, 0)
+                    #plt.gca().xaxis.set_major_locator(plt.NullLocator())
+                    #plt.gca().yaxis.set_major_locator(plt.NullLocator())
+                    #sns.heatmap(logits, cbar=True, xticklabels=True, yticklabels=True)
+                    #plt.show()
+                    #plt.waitforbuttonpress()
+                    #plt.close()
 
-            if self.args.save_pred:
-                pred = torch.argmax(outputs[0], 1)
-                pred = pred.cpu().data.numpy()
+                if self.args.save_pred:
+                    pred = torch.argmax(outputs[0], 1)
+                    pred = pred.cpu().data.numpy()
 
-                predict = pred.squeeze(0)
-                mask = get_color_pallete(predict, self.args.dataset)
-                print(outdir, os.path.splitext(filename[0])[0] + '.png')
-                np.save(os.path.join(outdir, os.path.splitext(filename[0])[0] + '.npy'), outputs[0][0][0].cpu().data.numpy())
-                #mask.save(os.path.join(outdir, os.path.splitext(filename[0])[0] + '.png'))
-        synchronize()
-        print(sum_acc / num, sum_miou / num)
+                    predict = pred.squeeze(0)
+                    mask = get_color_pallete(predict, self.args.dataset)
+                    # print(outdir, os.path.splitext(filename[0])[0] + '.png')
+                    # np.save(os.path.join(outdir, os.path.splitext(filename[0])[0] + '.npy'), outputs[0][0][0].cpu().data.numpy())
+                    #mask.save(os.path.join(outdir, os.path.splitext(filename[0])[0] + '.png'))
+            synchronize()
+            print(threshold, sum_acc / num, sum_miou.item() / num)
 
 
 if __name__ == '__main__':
