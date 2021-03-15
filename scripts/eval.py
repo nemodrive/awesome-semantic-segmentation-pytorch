@@ -95,10 +95,10 @@ class Evaluator(object):
                 mask_overlay[mask_overlay != 255] = 0
                 mask_overlay[0, :, :] = 0
                 mask_overlay[2, :, :] = 0
-                print(mask_overlay.transpose((1, 2, 0)).shape, image.squeeze(0).permute((1, 2, 0)).cpu().numpy().shape)
+                # print(mask_overlay.transpose((1, 2, 0)).shape, image.squeeze(0).permute((1, 2, 0)).cpu().numpy().shape)
                 res_img = cv2.addWeighted(mask_overlay.transpose((1, 2, 0)).astype(np.float32), 1.,
                      image.squeeze(0).permute((1, 2, 0)).cpu().numpy().astype(np.float32), 1, 0)
-                print(os.path.join(outdir, '\\'.join(filename[0].split('/')[-3:])))
+                # print(os.path.join(outdir, '\\'.join(filename[0].split('/')[-3:])))
                 mask.save(os.path.join(outdir, '\\'.join(filename[0].split('/')[-3:])))
         synchronize()
         print(sum_acc / num * 100, sum_miou / num * 100)
