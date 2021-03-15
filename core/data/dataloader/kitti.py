@@ -1,12 +1,13 @@
 """Pascal VOC Semantic Segmentation Dataset."""
 import os
 import torch
+import cv2
 import numpy as np
-from skimage.transform import resize
 from torch.utils.data.sampler import Sampler
 from torchvision import transforms
 
 from PIL import Image
+from skimage.transform import resize
 from .segbase import SegmentationDataset
 
 
@@ -41,8 +42,9 @@ class KittiSegmentation(SegmentationDataset):
     NUM_CLASS = 2
 
     def __init__(self, root='/mnt/storage/workspace/andreim/nemodrive/kitti_self_supervised_labels', split='train', mode=None, transform=None,
+                 base_size_w=640, base_size_h=256, crop_size_w=640, crop_size_h=256,
                  **kwargs):
-        super(KittiSegmentation, self).__init__(root, split, mode, transform, **kwargs)
+        super(KittiSegmentation, self).__init__(root, split, mode, transform, base_size_w, base_size_h, crop_size_w, crop_size_h, **kwargs)
         _voc_root = os.path.join(root, self.BASE_DIR)
         _mask_dir = os.path.join(_voc_root, 'HardLabels')#os.path.join(_voc_root, 'JPEGImages')
         _image_dir = os.path.join(_voc_root, 'JPEGImages')
@@ -92,9 +94,12 @@ class KittiSegmentation(SegmentationDataset):
             if self.transform is not None:
                 img = self.transform(img)
             return img, os.path.basename(self.images[index])
-
         mask = Image.open(self.masks[index]).quantize(self.num_class)
         path_mask = Image.open(self.path_masks[index]).convert('RGB')
+        img = img.crop((96, 0, 832 - 96, 256))
+        mask = mask.crop((96, 0, 832 - 96, 256))
+        path_mask = path_mask.crop((96, 0, 832 - 96, 256))
+        # print(img.size, mask.size, path_mask.size)
         # path_mask = np.load(self.path_masks[index], allow_pickle=True)
         # path_mask = Image.fromarray(path_mask)
         # mask.show()
@@ -107,6 +112,8 @@ class KittiSegmentation(SegmentationDataset):
         else:
             assert self.mode == 'testval'
             img, mask = self._img_transform(img), self._mask_transform(mask)
+        # cv2.imshow('img', img)
+        # cv2.waitKey(0)
         # general resize, normalize and toTensor
         if self.transform is not None:
             img = self.transform(img)
