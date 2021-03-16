@@ -62,7 +62,7 @@ class Evaluator(object):
         self.metric = SegmentationMetric(val_dataset.num_class)
 
     def eval(self):
-        for threshold in np.arange(0.1, 1, 0.025):          
+        for threshold in np.arange(0.15, 1, 0.025):          
             self.metric.reset()
             self.model.eval()
             if self.args.distributed:
