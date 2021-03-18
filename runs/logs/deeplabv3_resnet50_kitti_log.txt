@@ -33470,3 +33470,6 @@
 2021-03-15 20:17:02,424 semantic_segmentation INFO: Sample: 4558, validation pixAcc: 96.409, mIoU: 77.190
 2021-03-15 20:17:02,548 semantic_segmentation INFO: Sample: 4559, validation pixAcc: 96.409, mIoU: 77.188
 2021-03-15 20:17:02,654 semantic_segmentation INFO: Sample: 4560, validation pixAcc: 96.409, mIoU: 77.186
+2021-03-18 04:27:26,384 semantic_segmentation INFO: Sample: 1, validation pixAcc: 98.071, mIoU: 73.724
+2021-03-18 04:27:39,921 semantic_segmentation INFO: Sample: 2, validation pixAcc: 98.561, mIoU: 79.278
+2021-03-18 04:27:49,265 semantic_segmentation INFO: Sample: 3, validation pixAcc: 98.437, mIoU: 77.892

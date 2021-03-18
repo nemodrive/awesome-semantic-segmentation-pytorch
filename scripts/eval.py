@@ -62,7 +62,7 @@ class Evaluator(object):
         self.metric = SegmentationMetric(val_dataset.num_class)
 
     def eval(self):
-        for threshold in np.arange(0.15, 1, 0.025):          
+        for threshold in np.arange(-2.5, 1, 0.025):          
             self.metric.reset()
             self.model.eval()
             if self.args.distributed:
@@ -81,7 +81,7 @@ class Evaluator(object):
                 with torch.no_grad():
                     outputs = model(image)
                 
-                logits = nn.Sigmoid()(outputs[0][0][0])
+                logits = outputs[0][0][0]
                 logits = logits.cpu().data.numpy()
 
                 # print(target.shape, logits.shape, image.shape, filename)
@@ -102,18 +102,17 @@ class Evaluator(object):
                 #        i + 1, pixAcc * 100, mIoU * 100))
 
 
-                #if mIoU < 0.5:
-                    #plt.figure(figsize=(6.4, 2.88), dpi=100)
-                    #plt.gca().set_axis_off()
-                    #plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
-                    #                hspace=0, wspace=0)
-                    #plt.margins(0, 0)
-                    #plt.gca().xaxis.set_major_locator(plt.NullLocator())
-                    #plt.gca().yaxis.set_major_locator(plt.NullLocator())
-                    #sns.heatmap(logits, cbar=True, xticklabels=True, yticklabels=True)
-                    #plt.show()
-                    #plt.waitforbuttonpress()
-                    #plt.close()
+                #plt.figure(figsize=(6.4, 2.88), dpi=100)
+                #plt.gca().set_axis_off()
+                #plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
+                #                hspace=0, wspace=0)
+                #plt.margins(0, 0)
+                #plt.gca().xaxis.set_major_locator(plt.NullLocator())
+                #plt.gca().yaxis.set_major_locator(plt.NullLocator())
+                #sns.heatmap(logits, cbar=True, xticklabels=True, yticklabels=True)
+                #plt.show()
+                #plt.waitforbuttonpress()
+                #plt.close()
 
                 if self.args.save_pred:
                     pred = torch.argmax(outputs[0], 1)
