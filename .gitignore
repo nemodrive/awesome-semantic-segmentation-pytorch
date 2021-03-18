@@ -130,4 +130,4 @@ nn/sync_bn/
 *.png
 *.jpg
 *.txt
-
+*.pth
