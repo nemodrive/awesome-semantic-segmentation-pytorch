@@ -62,7 +62,7 @@ class Evaluator(object):
         self.metric = SegmentationMetric(val_dataset.num_class)
 
     def eval(self):
-        for threshold in np.arange(-2.5, 1, 0.025):          
+        for threshold in np.arange(0.425, 1, 0.025):          
             self.metric.reset()
             self.model.eval()
             if self.args.distributed:
@@ -81,7 +81,7 @@ class Evaluator(object):
                 with torch.no_grad():
                     outputs = model(image)
                 
-                logits = outputs[0][0][0]
+                logits = nn.Sigmoid()(outputs[0][0][0])
                 logits = logits.cpu().data.numpy()
 
                 # print(target.shape, logits.shape, image.shape, filename)
@@ -98,8 +98,8 @@ class Evaluator(object):
                 sum_acc += pixAcc
                 sum_miou += mIoU
 
-                #logger.info("Sample: {:d}, validation pixAcc: {:.3f}, mIoU: {:.3f}".format(
-                #        i + 1, pixAcc * 100, mIoU * 100))
+                logger.info("Sample: {:d}, validation pixAcc: {:.3f}, mIoU: {:.3f}".format(
+                        i + 1, pixAcc * 100, mIoU * 100))
 
 
                 #plt.figure(figsize=(6.4, 2.88), dpi=100)
