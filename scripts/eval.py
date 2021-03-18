@@ -11,6 +11,7 @@ root_path = os.path.split(cur_path)[0]
 sys.path.append(root_path)
 
 import numpy as np
+import cv2
 
 import torch
 import torch.nn as nn
@@ -62,7 +63,7 @@ class Evaluator(object):
         self.metric = SegmentationMetric(val_dataset.num_class)
 
     def eval(self):
-        for threshold in np.arange(0.425, 1, 0.025):          
+        for threshold in np.arange(0.425, 0.425, 0.025):          
             self.metric.reset()
             self.model.eval()
             if self.args.distributed:
@@ -102,17 +103,20 @@ class Evaluator(object):
                         i + 1, pixAcc * 100, mIoU * 100))
 
 
-                #plt.figure(figsize=(6.4, 2.88), dpi=100)
-                #plt.gca().set_axis_off()
-                #plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
-                #                hspace=0, wspace=0)
-                #plt.margins(0, 0)
-                #plt.gca().xaxis.set_major_locator(plt.NullLocator())
-                #plt.gca().yaxis.set_major_locator(plt.NullLocator())
-                #sns.heatmap(logits, cbar=True, xticklabels=True, yticklabels=True)
+                plt.figure(figsize=(6.4, 2.88), dpi=100)
+                plt.gca().set_axis_off()
+                plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
+                                hspace=0, wspace=0)
+                plt.margins(0, 0)
+                plt.gca().xaxis.set_major_locator(plt.NullLocator())
+                plt.gca().yaxis.set_major_locator(plt.NullLocator())
+                sns.heatmap(logits, cbar=True, xticklabels=True, yticklabels=True)
                 #plt.show()
                 #plt.waitforbuttonpress()
                 #plt.close()
+
+                save_path = os.path.join(outdir, '\\'.join(filename[0].split('/')[-3:]))
+                plt.savefig(save_path)
 
                 if self.args.save_pred:
                     pred = torch.argmax(outputs[0], 1)
@@ -145,7 +149,7 @@ if __name__ == '__main__':
     # TODO: optim code
     args.save_pred = True
     if args.save_pred:
-        outdir = '../runs/pred_pic/{}_{}_{}'.format(args.model, args.backbone, args.dataset)
+        outdir = '../runs/pred_sigmoid/{}_{}_{}'.format(args.model, args.backbone, args.dataset)
         if not os.path.exists(outdir):
             os.makedirs(outdir)
 
