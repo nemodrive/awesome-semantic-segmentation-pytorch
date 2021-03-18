@@ -63,7 +63,7 @@ class Evaluator(object):
         self.metric = SegmentationMetric(val_dataset.num_class)
 
     def eval(self):
-        for threshold in np.arange(0.425, 0.425, 0.025):          
+        for threshold in np.arange(-0.25, 0.25, 0.025):          
             self.metric.reset()
             self.model.eval()
             if self.args.distributed:
@@ -82,8 +82,9 @@ class Evaluator(object):
                 with torch.no_grad():
                     outputs = model(image)
                 
-                logits = nn.Sigmoid()(outputs[0][0][0])
+                logits = nn.Tanh()(outputs[0][0][0])
                 logits = logits.cpu().data.numpy()
+                softmax = logits.copy()
 
                 # print(target.shape, logits.shape, image.shape, filename)
             
@@ -99,31 +100,38 @@ class Evaluator(object):
                 sum_acc += pixAcc
                 sum_miou += mIoU
 
-                logger.info("Sample: {:d}, validation pixAcc: {:.3f}, mIoU: {:.3f}".format(
-                        i + 1, pixAcc * 100, mIoU * 100))
+                #logger.info("Sample: {:d}, validation pixAcc: {:.3f}, mIoU: {:.3f}".format(
+                #        i + 1, pixAcc * 100, mIoU * 100))
 
 
-                plt.figure(figsize=(6.4, 2.88), dpi=100)
-                plt.gca().set_axis_off()
-                plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
-                                hspace=0, wspace=0)
-                plt.margins(0, 0)
-                plt.gca().xaxis.set_major_locator(plt.NullLocator())
-                plt.gca().yaxis.set_major_locator(plt.NullLocator())
-                sns.heatmap(logits, cbar=True, xticklabels=True, yticklabels=True)
+                #plt.figure(figsize=(6.4, 2.88), dpi=100)
+                #plt.gca().set_axis_off()
+                #plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
+                #                hspace=0, wspace=0)
+                #plt.margins(0, 0)
+                #plt.gca().xaxis.set_major_locator(plt.NullLocator())
+                #plt.gca().yaxis.set_major_locator(plt.NullLocator())
+                #sns.heatmap(softmax, cbar=True, xticklabels=True, yticklabels=True)
                 #plt.show()
                 #plt.waitforbuttonpress()
                 #plt.close()
 
-                save_path = os.path.join(outdir, '\\'.join(filename[0].split('/')[-3:]))
-                plt.savefig(save_path)
+                #save_path = os.path.join(outdir, '\\'.join(filename[0].split('/')[-3:]))
+                #plt.savefig(save_path.replace('pred_pic', 'pred_sigmoid'))
+                #plt.close()
 
                 if self.args.save_pred:
-                    pred = torch.argmax(outputs[0], 1)
-                    pred = pred.cpu().data.numpy()
+                    mask_overlay = np.array(logits)
+                    mask_overlay = np.array([mask_overlay] * 3)
+                    mask_overlay[mask_overlay != 0] = 255
+                    mask_overlay[mask_overlay != 255] = 0
+                    mask_overlay[0, :, :] = 0
+                    mask_overlay[2, :, :] = 0
 
-                    predict = pred.squeeze(0)
-                    mask = get_color_pallete(predict, self.args.dataset)
+                    #img = cv2.imread(filename[0])
+                    #img = cv2.resize(img, (832, 256))[:, 96:-96, :]
+                    #res_img = cv2.addWeighted(mask_overlay.transpose((1, 2, 0)).astype(np.float32), 1., img.astype(np.float32), 1, 0)
+                    #cv2.imwrite(os.path.join(outdir, '\\'.join(filename[0].split('/')[-3:])), res_img)
                     # print(outdir, os.path.splitext(filename[0])[0] + '.png')
                     # np.save(os.path.join(outdir, os.path.splitext(filename[0])[0] + '.npy'), outputs[0][0][0].cpu().data.numpy())
                     #mask.save(os.path.join(outdir, os.path.splitext(filename[0])[0] + '.png'))
@@ -149,7 +157,7 @@ if __name__ == '__main__':
     # TODO: optim code
     args.save_pred = True
     if args.save_pred:
-        outdir = '../runs/pred_sigmoid/{}_{}_{}'.format(args.model, args.backbone, args.dataset)
+        outdir = '../runs/pred_pic/{}_{}_{}'.format(args.model, args.backbone, args.dataset)
         if not os.path.exists(outdir):
             os.makedirs(outdir)
 
