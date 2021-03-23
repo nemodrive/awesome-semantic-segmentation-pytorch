@@ -63,7 +63,7 @@ class Evaluator(object):
         self.metric = SegmentationMetric(val_dataset.num_class)
 
     def eval(self):
-        for threshold in np.arange(-0.25, 0.25, 0.025):          
+        for threshold in np.arange(0.00, 0.035, 0.0025):          
             self.metric.reset()
             self.model.eval()
             if self.args.distributed:
@@ -82,7 +82,7 @@ class Evaluator(object):
                 with torch.no_grad():
                     outputs = model(image)
                 
-                logits = nn.Tanh()(outputs[0][0][0])
+                logits = nn.Softmax()(outputs[0][0][0])
                 logits = logits.cpu().data.numpy()
                 softmax = logits.copy()
 
